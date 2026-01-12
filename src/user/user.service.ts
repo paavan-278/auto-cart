@@ -9,7 +9,7 @@ import { JwtService } from '@nestjs/jwt';
 import { SupabaseClient } from '@supabase/supabase-js';
 
 import { UserRepository } from './repository/user.repository';
-import { SignupSchema } from './dto/user.dto';
+import { SignUpSchema } from './dto/user.dto';
 import { Settings } from 'src/core/config/settings';
 import { ERROR_MESSAGES, MESSAGES } from 'src/constant/string';
 import { MailService } from 'src/mail/mail.service';
@@ -26,7 +26,7 @@ export class UserService {
     @Inject('SUPABASE') private readonly supabase: SupabaseClient,
   ) {}
 
-  async signup(payload: SignupSchema, file?: Express.Multer.File) {
+  async signup(payload: SignUpSchema, file?: Express.Multer.File) {
     const email = payload.email.toLowerCase().trim();
 
     const existingUser = await this.userRepository.findByEmail(email);

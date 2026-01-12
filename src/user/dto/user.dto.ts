@@ -10,7 +10,7 @@ import {
 } from 'class-validator';
 import { AccountType, TradeStatus, UserStatus } from '../enum/user_enum';
 
-export class SignupSchema {
+export class SignUpSchema {
   @ApiProperty()
   @IsString()
   name: string;
@@ -99,7 +99,7 @@ export class SignupSchema {
   password: string;
 }
 
-export class SigninSchema {
+export class SignInSchema {
   @ApiProperty()
   @IsEmail()
   email: string;

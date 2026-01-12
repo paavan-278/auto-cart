@@ -11,8 +11,8 @@ import { FileInterceptor } from '@nestjs/platform-express';
 
 import { UserService } from './user.service';
 import {
-  SignupSchema,
-  SigninSchema,
+  SignUpSchema,
+  SignInSchema,
   SendOtpDto,
   VerifyOtpDto,
   ResetPasswordDto,
@@ -31,14 +31,14 @@ export class UserController {
   @ApiConsumes('multipart/form-data')
   @UseInterceptors(FileInterceptor('business_logo'))
   signup(
-    @Body() body: SignupSchema,
+    @Body() body: SignUpSchema,
     @UploadedFile() file?: Express.Multer.File,
   ) {
     return this.userservice.signup(body, file);
   }
 
   @Post('signin')
-  signin(@Body() body: SigninSchema) {
+  signin(@Body() body: SignInSchema) {
     return this.userservice.signin(body.email, body.password);
   }
 
