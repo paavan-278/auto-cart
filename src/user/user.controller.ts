@@ -6,8 +6,9 @@ import {
   UseInterceptors,
   Req,
 } from '@nestjs/common';
-import { ApiConsumes, ApiTags, ApiBody, ApiBearerAuth } from '@nestjs/swagger';
+import { ApiConsumes, ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import { FileInterceptor } from '@nestjs/platform-express';
+import type { Request } from 'express';
 
 import { UserService } from './user.service';
 import {
@@ -56,8 +57,6 @@ export class UserController {
   @Post('reset-password')
   resetPassword(@Req() req: Request, @Body() dto: ResetPasswordDto) {
     const token = this.tokenDependancy.getCurrentUser(req);
-
     return this.userservice.resetPassword(token, dto.new_password);
   }
 }
-``;

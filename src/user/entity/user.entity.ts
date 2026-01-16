@@ -4,8 +4,10 @@ import {
   PrimaryGeneratedColumn,
   CreateDateColumn,
   UpdateDateColumn,
+  OneToMany,
 } from 'typeorm';
 import { AccountType, TradeStatus, UserStatus } from '../enum/user_enum';
+import { Ad } from 'src/ad/entity/ad.entity';
 
 @Entity('users')
 export class User {
@@ -20,6 +22,9 @@ export class User {
 
   @Column()
   phone: string;
+
+  @OneToMany(() => Ad, (ad) => ad.user)
+  ads: Ad[];
 
   @Column({ type: 'enum', enum: AccountType })
   account_type: AccountType;

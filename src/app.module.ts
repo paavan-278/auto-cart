@@ -4,6 +4,8 @@ import { CoreModule } from './core/core.module';
 import { Settings } from './core/config/settings';
 import { typeOrmConfig } from './database/typeorm.confiq';
 import { UserModule } from './user/user.module';
+import { AdModule } from './ad/ad.module';
+import { CategoryModule } from './category/category.module';
 
 @Module({
   imports: [
@@ -16,6 +18,8 @@ import { UserModule } from './user/user.module';
     }),
 
     UserModule,
+    AdModule,
+    CategoryModule
   ],
 })
 export class AppModule {}

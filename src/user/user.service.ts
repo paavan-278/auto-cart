@@ -10,20 +10,20 @@ import { SupabaseClient } from '@supabase/supabase-js';
 
 import { UserRepository } from './repository/user.repository';
 import { SignUpSchema } from './dto/user.dto';
-import { Settings } from 'src/core/config/settings';
 import { ERROR_MESSAGES, MESSAGES } from 'src/constant/string';
 import { MailService } from 'src/mail/mail.service';
 import { ConfigService } from '@nestjs/config';
+import { SUPABASE_CLIENT } from '../core/provider/supabase.provider';
 
 @Injectable()
 export class UserService {
   constructor(
     private readonly userRepository: UserRepository,
     private readonly jwt: JwtService,
-    private readonly settings: Settings,
     private readonly mailService: MailService,
     private readonly config: ConfigService,
-    @Inject('SUPABASE') private readonly supabase: SupabaseClient,
+    @Inject(SUPABASE_CLIENT)
+    private readonly supabase: SupabaseClient,
   ) {}
 
   async signup(payload: SignUpSchema, file?: Express.Multer.File) {
@@ -33,9 +33,6 @@ export class UserService {
     if (existingUser) {
       throw new BadRequestException(ERROR_MESSAGES.EMAIL_EXISTS);
     }
-
-    const trustedSeller = String(payload.trusted_seller) === 'true';
-    const freeAdUsed = String(payload.free_ad_used) === 'true';
 
     let businessLogoUrl: string | undefined;
 
@@ -50,9 +47,7 @@ export class UserService {
           upsert: true,
         });
 
-      if (error) {
-        throw new BadRequestException(error.message);
-      }
+      if (error) throw new BadRequestException(error.message);
 
       const { data } = this.supabase.storage
         .from(bucket)
@@ -63,21 +58,18 @@ export class UserService {
 
     const hashedPassword = await bcrypt.hash(payload.password, 10);
 
-    const user = this.userRepository.create({
+    const user = await this.userRepository.save({
       ...payload,
       email,
-      trusted_seller: trustedSeller,
-      free_ad_used: freeAdUsed,
       password: hashedPassword,
       business_logo_url: businessLogoUrl,
     });
 
-    const savedUser = await this.userRepository.save(user);
-    delete (savedUser as any).password;
+    delete (user as any).password;
 
     return {
       message: MESSAGES.USER_CREATED,
-      user: savedUser,
+      user,
     };
   }
 
@@ -101,26 +93,25 @@ export class UserService {
         type: 'ACCESS',
       },
       {
-        secret: this.settings.SECRET_KEY,
+        secret: this.config.get<string>('JWT_SECRET'),
         expiresIn: '7d',
       },
     );
+
     const { password: _, ...safeUser } = user;
 
-  return {
-    message: MESSAGES.LOGIN_SUCCESS,
-    token,
-    user: safeUser,
-  };
+    return {
+      message: MESSAGES.LOGIN_SUCCESS,
+      token,
+      user: safeUser,
+    };
   }
 
   async sendOtp(email: string) {
     const normalizedEmail = email.toLowerCase().trim();
-
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
 
     await this.userRepository.createOtp(normalizedEmail, otp);
-
     await this.mailService.sendOtpMail(normalizedEmail, otp);
 
     return {
@@ -135,7 +126,6 @@ export class UserService {
     const inputOtp = String(otp);
 
     const record = await this.userRepository.findLatestOtp(normalizedEmail);
-
     if (!record) {
       throw new BadRequestException(ERROR_MESSAGES.OTP_NOT_FOUND);
     }
@@ -160,7 +150,7 @@ export class UserService {
         type: 'RESET_PASSWORD',
       },
       {
-        secret: this.settings.SECRET_KEY,
+        secret: this.config.get<string>('JWT_SECRET'),
         expiresIn: '15m',
       },
     );
@@ -176,7 +166,7 @@ export class UserService {
 
     try {
       payload = this.jwt.verify(token, {
-        secret: this.settings.SECRET_KEY,
+        secret: this.config.get<string>('JWT_SECRET'),
       });
     } catch {
       throw new UnauthorizedException(
