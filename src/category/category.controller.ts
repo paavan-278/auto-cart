@@ -7,6 +7,7 @@ import {
   UploadedFile,
   UseInterceptors,
   UseGuards,
+  Req,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiConsumes, ApiTags } from '@nestjs/swagger';
 import { FileInterceptor } from '@nestjs/platform-express';
@@ -24,12 +25,13 @@ export class CategoryController {
 
   @Post()
   @ApiConsumes('multipart/form-data')
-  @UseInterceptors(FileInterceptor('file'))
+  @UseInterceptors(FileInterceptor('image'))
   async create(
     @Body() dto: CreateCategoryDto,
-    @UploadedFile() file?: Express.Multer.File,
+    @UploadedFile() file: Express.Multer.File,
+    @Req() req,
   ) {
-    return await this.categoryService.create(dto, file);
+    return this.categoryService.create(dto, file, req.user);
   }
 
   @Get()

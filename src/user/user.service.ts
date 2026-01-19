@@ -14,6 +14,7 @@ import { ERROR_MESSAGES, MESSAGES } from 'src/constant/string';
 import { MailService } from 'src/mail/mail.service';
 import { ConfigService } from '@nestjs/config';
 import { SUPABASE_CLIENT } from '../core/provider/supabase.provider';
+import { UpdateUserDto } from './dto/update_user.dto';
 
 @Injectable()
 export class UserService {
@@ -26,7 +27,11 @@ export class UserService {
     private readonly supabase: SupabaseClient,
   ) {}
 
-  async signup(payload: SignUpSchema, file?: Express.Multer.File) {
+  async signup(
+    payload: SignUpSchema,
+    businessLogo?: Express.Multer.File,
+    backgroundImage?: Express.Multer.File,
+  ) {
     const email = payload.email.toLowerCase().trim();
 
     const existingUser = await this.userRepository.findByEmail(email);
@@ -34,16 +39,21 @@ export class UserService {
       throw new BadRequestException(ERROR_MESSAGES.EMAIL_EXISTS);
     }
 
-    let businessLogoUrl: string | undefined;
+    const trustedSeller = String(payload.trusted_seller) === 'true';
+    const freeAdUsed = String(payload.free_ad_used) === 'true';
 
-    if (file) {
-      const filePath = `${Date.now()}-${file.originalname}`;
-      const bucket = 'auto-cart';
+    let businessLogoUrl: string | undefined;
+    let backgroundImageUrl: string | undefined;
+
+    const bucket = 'auto-cart';
+
+    if (businessLogo) {
+      const filePath = `business-logo/${Date.now()}-${businessLogo.originalname}`;
 
       const { error } = await this.supabase.storage
         .from(bucket)
-        .upload(filePath, file.buffer, {
-          contentType: file.mimetype,
+        .upload(filePath, businessLogo.buffer, {
+          contentType: businessLogo.mimetype,
           upsert: true,
         });
 
@@ -52,27 +62,46 @@ export class UserService {
       const { data } = this.supabase.storage
         .from(bucket)
         .getPublicUrl(filePath);
-
       businessLogoUrl = data.publicUrl;
+    }
+
+    if (backgroundImage) {
+      const filePath = `background-image/${Date.now()}-${backgroundImage.originalname}`;
+
+      const { error } = await this.supabase.storage
+        .from(bucket)
+        .upload(filePath, backgroundImage.buffer, {
+          contentType: backgroundImage.mimetype,
+          upsert: true,
+        });
+
+      if (error) throw new BadRequestException(error.message);
+
+      const { data } = this.supabase.storage
+        .from(bucket)
+        .getPublicUrl(filePath);
+      backgroundImageUrl = data.publicUrl;
     }
 
     const hashedPassword = await bcrypt.hash(payload.password, 10);
 
-    const user = await this.userRepository.save({
+    const user = this.userRepository.create({
       ...payload,
       email,
+      trusted_seller: trustedSeller,
+      free_ad_used: freeAdUsed,
       password: hashedPassword,
       business_logo_url: businessLogoUrl,
+      background_image_url: backgroundImageUrl,
     });
 
-    delete (user as any).password;
+    const savedUser = await this.userRepository.save(user);
 
     return {
       message: MESSAGES.USER_CREATED,
-      user,
+      user: savedUser,
     };
   }
-
   async signin(email: string, password: string) {
     const normalizedEmail = email.toLowerCase().trim();
 
@@ -194,6 +223,83 @@ export class UserService {
 
     return {
       message: MESSAGES.PASSWORD_RESET_SUCCES,
+    };
+  }
+
+  async updateUser(
+    userId: string,
+    updateDto: UpdateUserDto,
+    businessLogo?: Express.Multer.File,
+    backgroundImage?: Express.Multer.File,
+  ) {
+    const user = await this.userRepository.findById(userId);
+    if (!user) {
+      throw new BadRequestException(ERROR_MESSAGES.USER_NOT_FOUND);
+    }
+
+    const trustedSeller =
+      updateDto.trusted_seller !== undefined
+        ? String(updateDto.trusted_seller) === 'true'
+        : user.trusted_seller;
+
+    const freeAdUsed =
+      updateDto.free_ad_used !== undefined
+        ? String(updateDto.free_ad_used) === 'true'
+        : user.free_ad_used;
+
+    let businessLogoUrl = user.business_logo_url;
+    let backgroundImageUrl = user.background_image_url;
+
+    const bucket = 'auto-cart';
+
+    if (businessLogo) {
+      const filePath = `business-logo/${userId}-${Date.now()}-${businessLogo.originalname}`;
+      const { error } = await this.supabase.storage
+        .from(bucket)
+        .upload(filePath, businessLogo.buffer, {
+          contentType: businessLogo.mimetype,
+          upsert: true,
+        });
+      if (error) throw new BadRequestException(error.message);
+
+      businessLogoUrl = this.supabase.storage
+        .from(bucket)
+        .getPublicUrl(filePath).data.publicUrl;
+    }
+
+    if (backgroundImage) {
+      const filePath = `background-image/${userId}-${Date.now()}-${backgroundImage.originalname}`;
+      const { error } = await this.supabase.storage
+        .from(bucket)
+        .upload(filePath, backgroundImage.buffer, {
+          contentType: backgroundImage.mimetype,
+          upsert: true,
+        });
+      if (error) throw new BadRequestException(error.message);
+
+      backgroundImageUrl = this.supabase.storage
+        .from(bucket)
+        .getPublicUrl(filePath).data.publicUrl;
+    }
+
+    if (updateDto.email) {
+      updateDto.email = updateDto.email.toLowerCase().trim();
+    }
+
+    const { business_logo, background_image, ...safeUpdateDto } =
+      updateDto as any;
+
+    await this.userRepository.update(userId, {
+      ...safeUpdateDto,
+      trusted_seller: trustedSeller,
+      free_ad_used: freeAdUsed,
+      business_logo_url: businessLogoUrl,
+      background_image_url: backgroundImageUrl,
+    });
+
+    return {
+      message: MESSAGES.USER_UPDATE_SUCCESS,
+      user: await this.userRepository.findById(userId),
     };
   }
 }

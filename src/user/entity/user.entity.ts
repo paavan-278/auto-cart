@@ -8,6 +8,8 @@ import {
 } from 'typeorm';
 import { AccountType, TradeStatus, UserStatus } from '../enum/user_enum';
 import { Ad } from 'src/ad/entity/ad.entity';
+import { Category } from 'src/category/entity/category.entity';
+import { Exclude } from 'class-transformer';
 
 @Entity('users')
 export class User {
@@ -25,6 +27,9 @@ export class User {
 
   @OneToMany(() => Ad, (ad) => ad.user)
   ads: Ad[];
+
+  @OneToMany(() => Category, (category) => category.createdBy)
+  categories: Category[];
 
   @Column({ type: 'enum', enum: AccountType })
   account_type: AccountType;
@@ -59,6 +64,9 @@ export class User {
   @Column({ nullable: true })
   business_logo_url: string;
 
+  @Column({ type: 'text', nullable: true })
+  background_image_url?: string;
+
   @Column({ nullable: true })
   instagram_link: string;
 
@@ -69,6 +77,7 @@ export class User {
   website_link: string;
 
   @Column()
+  @Exclude()
   password: string;
 
   @CreateDateColumn()

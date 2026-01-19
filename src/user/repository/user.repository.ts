@@ -18,6 +18,10 @@ export class UserRepository {
     return this.userRepository.findOne({ where: { email } });
   }
 
+  findById(id: string) {
+    return this.userRepository.findOne({ where: { id } });
+  }
+
   create(data: Partial<User>): User {
     return this.userRepository.create(data);
   }
@@ -53,4 +57,8 @@ export class UserRepository {
   async markUsed(id: string) {
     await this.otpRepository.update({ id }, { is_used: true });
   }
+
+  async update(id: string, payload: Partial<User>) {
+  return this.userRepository.update(id, payload);
+}
 }

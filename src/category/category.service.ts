@@ -9,6 +9,7 @@ import { Category } from './entity/category.entity';
 import { CreateCategoryDto } from './dto/category.dto';
 import { SupabaseService } from 'src/service/supabase-upload.service';
 import { ERROR_MESSAGES } from 'src/constant/string';
+import { User } from 'src/user/entity/user.entity';
 
 @Injectable()
 export class CategoryService {
@@ -18,7 +19,7 @@ export class CategoryService {
     private readonly supabaseService: SupabaseService,
   ) {}
 
-  async create(dto: CreateCategoryDto, file?: Express.Multer.File) {
+  async create(dto: CreateCategoryDto, file: Express.Multer.File, user: User) {
     if (!file) {
       throw new BadRequestException(ERROR_MESSAGES.CATEGORY_IMAGE_REQUIRED);
     }
@@ -31,6 +32,7 @@ export class CategoryService {
     const category = this.categoryRepo.create({
       categoryName: dto.categoryName,
       imageUrl,
+      createdBy: user,
     });
 
     return this.categoryRepo.save(category);
@@ -38,6 +40,7 @@ export class CategoryService {
 
   async findAll(): Promise<Category[]> {
     return this.categoryRepo.find({
+      relations: ['createdBy'],
       order: { createdAt: 'DESC' },
     });
   }
@@ -45,6 +48,7 @@ export class CategoryService {
   async findById(id: string): Promise<Category> {
     const category = await this.categoryRepo.findOne({
       where: { id },
+      relations: ['createdBy'],
     });
 
     if (!category) {

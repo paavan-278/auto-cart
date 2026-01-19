@@ -7,7 +7,8 @@ export const MESSAGES = {
   PASSWORD_RESET_SUCCES: 'Password Reset Successfully',
   AD_CREATED_SUCCESS: 'Place Ad Create Successfully',
   AD_FETCH_SUCCESS: 'Ads fetched successfully',
-  AD_DELETE_SUCCESS: 'Ad deleted successfully'
+  AD_DELETE_SUCCESS: 'Ad deleted successfully',
+  USER_UPDATE_SUCCESS: 'User Update Successfully'
 };
 
 export const ERROR_MESSAGES = {

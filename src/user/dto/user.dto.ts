@@ -11,123 +11,209 @@ import {
 import { AccountType, TradeStatus, UserStatus } from '../enum/user_enum';
 
 export class SignUpSchema {
-  @ApiProperty()
+  @ApiProperty({
+    description: 'Full name of the user',
+    example: 'Rahul Sharma',
+  })
   @IsString()
   name: string;
 
-  @ApiProperty()
+  @ApiProperty({
+    description: 'Email address of the user (must be unique)',
+    example: 'rahul@gmail.com',
+  })
   @IsEmail()
   email: string;
 
-  @ApiProperty()
+  @ApiProperty({
+    description: 'Mobile phone number of the user',
+    example: '9876543210',
+  })
   @IsString()
+  @MinLength(10, { message: 'Phone number must be at least 10 digits' })
   phone: string;
 
-  @ApiProperty({ enum: AccountType })
+  @ApiProperty({
+    description: 'Type of user account',
+    enum: AccountType,
+    example: AccountType.GUEST,
+  })
   @IsEnum(AccountType)
   account_type: AccountType;
 
-  @ApiProperty({ enum: TradeStatus, required: false })
+  @ApiProperty({
+    description: 'Trade status of the user (optional)',
+    enum: TradeStatus,
+    required: false,
+  })
   @IsOptional()
   @IsEnum(TradeStatus)
   trade_status?: TradeStatus;
 
-  @ApiProperty({ required: false })
+  @ApiProperty({
+    description: 'Whether the user is a trusted seller',
+    required: false,
+    example: true,
+  })
   @IsOptional()
   @IsBoolean()
   trusted_seller?: boolean;
 
-  @ApiProperty({ required: false })
+  @ApiProperty({
+    description: 'Indicates if the free advertisement quota is already used',
+    required: false,
+    example: false,
+  })
   @IsOptional()
   @IsBoolean()
   free_ad_used?: boolean;
 
-  @ApiProperty({ enum: UserStatus, required: false })
+  @ApiProperty({
+    description: 'Current status of the user account',
+    enum: UserStatus,
+    required: false,
+  })
   @IsOptional()
   @IsEnum(UserStatus)
   status?: UserStatus;
 
-  @ApiPropertyOptional()
+  @ApiPropertyOptional({
+    description: 'Registered business name of the seller',
+    example: 'AutoCart Motors',
+  })
   @IsOptional()
   @IsString()
   business_name?: string;
 
-  @ApiPropertyOptional()
+  @ApiPropertyOptional({
+    description: 'Business or residential address',
+    example: 'Sector 22, Chandigarh',
+  })
   @IsOptional()
   @IsString()
   address?: string;
 
-  @ApiPropertyOptional()
+  @ApiPropertyOptional({
+    description: 'Name of the contact person for the business',
+    example: 'Amit Verma',
+  })
   @IsOptional()
   @IsString()
   contact_person_name?: string;
 
-  @ApiPropertyOptional()
+  @ApiPropertyOptional({
+    description: 'VAT / GST number of the business',
+    example: 'GSTIN123456789',
+  })
   @IsOptional()
   @IsString()
   vat_number?: string;
 
   @ApiProperty({
+    description: 'Business logo image file',
     type: 'string',
     format: 'binary',
     required: false,
   })
+  @IsOptional()
   business_logo?: any;
 
-  @ApiPropertyOptional()
+  @ApiProperty({
+    description: 'Background image for business profile',
+    type: 'string',
+    format: 'binary',
+    required: false,
+  })
+  @IsOptional()
+  background_image?: any;
+
+  @ApiPropertyOptional({
+    description: 'Dealer license number',
+    example: 'DL-2024-8899',
+  })
   @IsOptional()
   @IsString()
   dealer_license?: string;
 
-  @ApiPropertyOptional()
+  @ApiPropertyOptional({
+    description: 'Instagram profile link',
+    example: 'https://instagram.com/autocart',
+  })
   @IsOptional()
   @IsString()
   instagram_link?: string;
 
-  @ApiPropertyOptional()
+  @ApiPropertyOptional({
+    description: 'Facebook page link',
+    example: 'https://facebook.com/autocart',
+  })
   @IsOptional()
   @IsString()
   facebook_link?: string;
 
-  @ApiPropertyOptional()
+  @ApiPropertyOptional({
+    description: 'Official website link',
+    example: 'https://www.autocart.com',
+  })
   @IsOptional()
   @IsString()
   website_link?: string;
 
-  @ApiProperty()
+  @ApiProperty({
+    description: 'Password for the account (minimum 6 characters)',
+    example: 'Password@123',
+  })
   @IsString()
   password: string;
 }
 
 export class SignInSchema {
-  @ApiProperty()
+  @ApiProperty({
+    description: 'Registered email address',
+    example: 'rahul@gmail.com',
+  })
   @IsEmail()
   email: string;
 
-  @ApiProperty()
+  @ApiProperty({
+    description: 'Account password',
+    example: 'Password@123',
+  })
   @IsString()
   password: string;
 }
 
 export class SendOtpDto {
-  @ApiProperty()
+  @ApiProperty({
+    description: 'Email address to send OTP',
+    example: 'rahul@gmail.com',
+  })
   @IsEmail()
   email: string;
 }
 
 export class VerifyOtpDto {
-  @ApiProperty()
+  @ApiProperty({
+    description: 'Registered email address',
+    example: 'rahul@gmail.com',
+  })
   @IsEmail()
   email: string;
 
-  @ApiProperty()
+  @ApiProperty({
+    description: '6-digit OTP sent to email',
+    example: '123456',
+  })
   @IsString()
   @Length(6, 6)
   otp: string;
 }
 
 export class ResetPasswordDto {
-  @ApiProperty()
+  @ApiProperty({
+    description: 'New password (minimum 6 characters)',
+    example: 'NewPass@123',
+  })
   @MinLength(6)
   new_password: string;
 }
