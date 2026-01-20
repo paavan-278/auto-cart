@@ -6,6 +6,7 @@ import { typeOrmConfig } from './database/typeorm.confiq';
 import { UserModule } from './user/user.module';
 import { AdModule } from './ad/ad.module';
 import { CategoryModule } from './category/category.module';
+import { PlateModule } from './plate/plate.module';
 
 @Module({
   imports: [
@@ -19,7 +20,8 @@ import { CategoryModule } from './category/category.module';
 
     UserModule,
     AdModule,
-    CategoryModule
+    CategoryModule,
+    PlateModule,
   ],
 })
 export class AppModule {}
